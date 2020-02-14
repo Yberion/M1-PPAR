@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include <math.h>
 #include <time.h>
 #include <sys/time.h>
 #include <omp.h>
 
 typedef void (*primeFunctionPtr_t)(bool*, size_t);
 
-static unsigned int countPrimeNumbers(bool *primes, size_t size)
+static size_t countPrimeNumbers(bool *primes, size_t size)
 {
-    unsigned int count = 0;
+    size_t count = 0;
 
     for (size_t i = 2; i < size; ++i)
     {
@@ -37,13 +39,15 @@ static void displayPrimeNumbers(bool *primes, size_t size)
 
 static void EratostheneSequential(bool *primes, size_t size)
 {
-    for (size_t p = 2; p * p < size; ++p)
+    size_t lastSqrt = (size_t)sqrt((double)size);
+
+    for (size_t i = 3; i < lastSqrt; i += 2)
     {
-        if (primes[p] == true)
+        if (primes[i / 2] == true)
         {
-            for (size_t i = p * p; i < size; i += p)
+            for (size_t j = i * i; j < size; j += 2 * i)
             {
-                primes[i] = false;
+                primes[j / 2] = false;
             }
         }
     }
@@ -51,21 +55,28 @@ static void EratostheneSequential(bool *primes, size_t size)
 
 static void EratostheneParallel(bool *primes, size_t size)
 {
-    for (size_t p = 2; p * p < size; ++p)
+    omp_set_num_threads(omp_get_num_procs());
+
+    size_t lastSqrt = (size_t)sqrt((double)size);
+
+// Declare a new team of thread to work in parallel to initialize the matrix with random numbers
+#pragma omp parallel for schedule(dynamic)
+    for (size_t i = 3; i < lastSqrt; i += 2)
     {
-        if (primes[p] == true)
+        if (primes[i / 2] == true)
         {
-            for (size_t i = p * p; i < size; i += p)
+            for (size_t j = i * i; j < size; j += 2 * i)
             {
-                primes[i] = false;
+                primes[j / 2] = false;
             }
         }
     }
+// pragma omp parallel for
 }
 
 static bool* generateTrueArray(size_t size)
 {
-    bool* tmp = (bool*)calloc(size, sizeof(bool));
+    bool *tmp = (bool*)calloc(size, sizeof(bool));
 
     if (!tmp)
     {
@@ -120,14 +131,14 @@ int main(void)
         display = 0;
     }
 
-    bool* primesSequential = generateTrueArray(n);
+    bool *primesSequential = generateTrueArray(n);
 
     if (!primesSequential)
     {
         goto exit;
     }
 
-    bool* primesParallel = generateTrueArray(n);
+    bool *primesParallel = generateTrueArray(n);
 
     if (!primesParallel)
     {
@@ -135,7 +146,17 @@ int main(void)
     }
 
     double timeSequential = primeFunctionExecutionTime(EratostheneSequential, primesSequential, n);
-    double timeParallel = primeFunctionExecutionTime(EratostheneParallel, primesSequential, n);
+    double timeParallel = primeFunctionExecutionTime(EratostheneParallel, primesParallel, n);
+
+    /*
+     * Enter n (> 0)
+     300000000
+     Display prime numbers ? (yes = 1, no = 0, default no)
+     0
+     Sequential: 1.951293 (count: 166252323)
+     Parallel: 0.927194 (count: 166252323)
+     *
+     */
 
     if (display == 1)
     {
@@ -147,7 +168,8 @@ int main(void)
         printf("------------------------------\n");
     }
 
-    printf("Sequential: %f\nParallel: %f\n", timeSequential, timeParallel);
+    printf("Sequential: %f (count: %zu)\nParallel: %f (count: %zu)\n", timeSequential, countPrimeNumbers(primesSequential, n), timeParallel,
+            countPrimeNumbers(primesParallel, n));
 
     exitStatus = EXIT_SUCCESS;
 

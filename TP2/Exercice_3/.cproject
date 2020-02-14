@@ -29,7 +29,7 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.838365714" name="Debug" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=" parent="cdt.managedbuild.config.gnu.exe.debug">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.838365714" name="Debug" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="cdt.managedbuild.config.gnu.exe.debug">
                     					
                     <folderInfo id="cdt.managedbuild.config.gnu.exe.debug.838365714." name="/" resourcePath="">
                         						
@@ -55,7 +55,9 @@
                                 								
                                 <option defaultValue="gnu.c.debugging.level.max" id="gnu.c.compiler.exe.debug.option.debugging.level.1632244674" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.misc.other.885472779" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fopenmp" valueType="string"/>
+                                <option id="gnu.c.compiler.option.misc.other.885472779" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fopenmp -lm" valueType="string"/>
+                                								
+                                <option id="gnu.c.compiler.option.dialect.std.1375706089" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2117466648" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -63,7 +65,7 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1062218967" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
                                 								
-                                <option id="gnu.c.link.option.ldflags.1703670286" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="-fopenmp" valueType="string"/>
+                                <option id="gnu.c.link.option.ldflags.1703670286" name="Linker flags" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="-fopenmp -lm" valueType="string"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1598011493" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
                                     									
@@ -153,11 +155,15 @@
                                 								
                                 <option defaultValue="gnu.c.debugging.level.none" id="gnu.c.compiler.exe.release.option.debugging.level.732537126" name="Debug Level" superClass="gnu.c.compiler.exe.release.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
                                 								
+                                <option id="gnu.c.compiler.option.misc.other.1502159750" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fopenmp -lm" valueType="string"/>
+                                								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2063292024" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
                             </tool>
                             							
                             <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.567354558" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release">
+                                								
+                                <option id="gnu.c.link.option.ldflags.1156034117" name="Linker flags" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="-fopenmp -lm" valueType="string"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1376580448" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
                                     									
@@ -223,7 +229,21 @@
     	
     <storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
     	
-    <storageModule moduleId="refreshScope"/>
+    <storageModule moduleId="refreshScope" versionNumber="2">
+        		
+        <configuration configurationName="Debug">
+            			
+            <resource resourceType="PROJECT" workspacePath="/TP2_Exercice_3"/>
+            		
+        </configuration>
+        		
+        <configuration configurationName="Release">
+            			
+            <resource resourceType="PROJECT" workspacePath="/TP2_Exercice_3"/>
+            		
+        </configuration>
+        	
+    </storageModule>
     	
     <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
     
