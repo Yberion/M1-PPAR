@@ -76,7 +76,7 @@ static int** generateRandomSquareMatrix(int dimension)
     {
         for (int j = 0; j < dimension; ++j)
         {
-            matrix[i][j] = generateRandomNumberRange(1, 100);
+            matrix[i][j] = generateRandomNumberRange(1, 5);
         }
     }
 // pragma omp parallel for
@@ -164,15 +164,17 @@ int main(void)
     int **matrixA = generateRandomSquareMatrix(n);
     int **matrixB = generateRandomSquareMatrix(n);
 
-    int **matrixResult = generateZeroSquareMatrix(n);
+    int **matrixResultSequential = generateZeroSquareMatrix(n);
+    int **matrixResultParallel = generateZeroSquareMatrix(n);
 
     //displayMatrix(matrixA, n);
     //displayMatrix(matrixB, n);
 
-    double timeSequential = sequentialMultiplicationMatrix(matrixResult, matrixA, matrixB, n);
-    double timeParallel = parallelMultiplicationMatrix(matrixResult, matrixA, matrixB, n);
+    double timeSequential = sequentialMultiplicationMatrix(matrixResultSequential, matrixA, matrixB, n);
+    double timeParallel = parallelMultiplicationMatrix(matrixResultParallel, matrixA, matrixB, n);
 
-    //displayMatrix(matrixResult, n);
+    //displayMatrix(matrixResultSequential, n);
+    //displayMatrix(matrixResultParallel, n);
 
     printf("Sequential: %f\nParallel: %f\n", timeSequential, timeParallel);
 
@@ -186,7 +188,8 @@ int main(void)
      *
      */
 
-    freeMatrix(matrixResult, n);
+    freeMatrix(matrixResultSequential, n);
+    freeMatrix(matrixResultParallel, n);
     freeMatrix(matrixB, n);
     freeMatrix(matrixA, n);
 
