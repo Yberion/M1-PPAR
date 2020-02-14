@@ -4,6 +4,8 @@
 #include <sys/time.h>
 #include <omp.h>
 
+typedef void (*matrixFunctionPtr_t)(int **, int **, int **, int );
+
 static int generateRandomNumberRange(int min, int max)
 {
     return (rand() % (max - min + 1)) + min;
@@ -29,7 +31,8 @@ static int** generateZeroSquareMatrix(int dimension)
 
         exit(EXIT_FAILURE);
     }
-
+// Declare a new team of thread to work in parallel to initialize the matrix of 0
+#pragma omp parallel for
     for (int i = 0; i < dimension; ++i)
     {
         matrix[i] = (int*)calloc(dimension, sizeof(int));
@@ -41,6 +44,7 @@ static int** generateZeroSquareMatrix(int dimension)
             exit(EXIT_FAILURE);
         }
     }
+// pragma omp parallel for
 
     return matrix;
 }
@@ -84,11 +88,8 @@ static int** generateRandomSquareMatrix(int dimension)
     return matrix;
 }
 
-static double sequentialMultiplicationMatrix(int **matrixResult, int **matrixA, int **matrixB, int dimension)
+static void sequentialMultiplicationMatrix(int **matrixResult, int **matrixA, int **matrixB, int dimension)
 {
-    struct timeval start;
-    gettimeofday(&start, 0);
-
     for (int i = 0; i < dimension; ++i)
     {
         for (int j = 0; j < dimension; ++j)
@@ -99,18 +100,10 @@ static double sequentialMultiplicationMatrix(int **matrixResult, int **matrixA, 
             }
         }
     }
-
-    struct timeval end;
-    gettimeofday(&end, 0);
-
-    return (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_usec - start.tv_usec) / 1000000.0;
 }
 
-static double parallelMultiplicationMatrix(int **matrixResult, int **matrixA, int **matrixB, int dimension)
+static void parallelMultiplicationMatrix(int **matrixResult, int **matrixA, int **matrixB, int dimension)
 {
-    struct timeval start;
-    gettimeofday(&start, 0);
-
 // Declare a new team of thread to work in parallel to initialize the matrix with random numbers
 #pragma omp parallel for
     for (int i = 0; i < dimension; ++i)
@@ -124,11 +117,6 @@ static double parallelMultiplicationMatrix(int **matrixResult, int **matrixA, in
         }
     }
 // pragma omp parallel for
-
-    struct timeval end;
-    gettimeofday(&end, 0);
-
-    return (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_usec - start.tv_usec) / 1000000.0;
 }
 
 static void displayMatrix(int **matrix, int dimension)
@@ -144,6 +132,19 @@ static void displayMatrix(int **matrix, int dimension)
         printf("\n");
     }
     printf("--------------------------------\n");
+}
+
+static double matrixFunctionExecutionTime(matrixFunctionPtr_t matrixFunction, int **matrixResult, int **matrixA, int **matrixB, int dimension)
+{
+    struct timeval start;
+    gettimeofday(&start, 0);
+
+    matrixFunction(matrixResult, matrixA, matrixB, dimension);
+
+    struct timeval end;
+    gettimeofday(&end, 0);
+
+    return (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_usec - start.tv_usec) / 1000000.0;
 }
 
 int main(void)
@@ -170,8 +171,8 @@ int main(void)
     //displayMatrix(matrixA, n);
     //displayMatrix(matrixB, n);
 
-    double timeSequential = sequentialMultiplicationMatrix(matrixResultSequential, matrixA, matrixB, n);
-    double timeParallel = parallelMultiplicationMatrix(matrixResultParallel, matrixA, matrixB, n);
+    double timeSequential = matrixFunctionExecutionTime(sequentialMultiplicationMatrix, matrixResultSequential, matrixA, matrixB, n);
+    double timeParallel = matrixFunctionExecutionTime(parallelMultiplicationMatrix, matrixResultParallel, matrixA, matrixB, n);
 
     //displayMatrix(matrixResultSequential, n);
     //displayMatrix(matrixResultParallel, n);
@@ -188,8 +189,8 @@ int main(void)
      *
      */
 
-    freeMatrix(matrixResultSequential, n);
     freeMatrix(matrixResultParallel, n);
+    freeMatrix(matrixResultSequential, n);
     freeMatrix(matrixB, n);
     freeMatrix(matrixA, n);
 
