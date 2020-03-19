@@ -20,7 +20,7 @@
 #define N 32
 #define itMax 20
 
-#define VAL_CHAR_NULL 0
+#define VAL_CHAR_EMPTY 0
 #define VAL_CHAR_O 1
 #define VAL_CHAR_X 2
 
@@ -88,7 +88,7 @@ unsigned int* initialize_random()
         {
             if (rand() % 5 != 0)
             {
-                cell = VAL_CHAR_NULL;
+                cell = VAL_CHAR_EMPTY;
             }
             else if (rand() % 2 == 0)
             {
@@ -141,7 +141,7 @@ unsigned int* initialize_glider()
     {
         for (y = 0; y < N; y++)
         {
-            write_cell(x, y, VAL_CHAR_NULL, world);
+            write_cell(x, y, VAL_CHAR_EMPTY, world);
         }
     }
 
@@ -188,7 +188,7 @@ unsigned int* initialize_small_exploder()
     {
         for (y = 0; y < N; y++)
         {
-            write_cell(x, y, VAL_CHAR_NULL, world);
+            write_cell(x, y, VAL_CHAR_EMPTY, world);
         }
     }
 
@@ -242,7 +242,7 @@ void update(int x, int y, int neighbourX, int neighbourY, unsigned int* world, i
 {
     unsigned int cell = read_cell(x, y, neighbourX, neighbourY, world);
 
-    if (cell != VAL_CHAR_NULL)
+    if (cell != VAL_CHAR_EMPTY)
     {
         (*neighbourNumbers)++;
 
@@ -319,8 +319,8 @@ short generateNewState(unsigned int* world1, unsigned int* world2, int xStart, i
     int neighbourNumbers;
     int numberNeighboursO;
     int numberNeighboursX;
-    unsigned int cell;
-    short change = 0;
+    unsigned int currentCellVal;
+    short change = 1;
 
     // cleaning destination world
     /*
@@ -341,9 +341,39 @@ short generateNewState(unsigned int* world1, unsigned int* world2, int xStart, i
     {
         for (y = 0; y < N; y++)
         {
-            //
-            // to be completed
-            //
+            currentCellVal = read_cell(x, y, 0, 0, world1);
+
+            neighbors(x, y, world1, &neighbourNumbers, &numberNeighboursO, &numberNeighboursX);
+
+            if (neighbourNumbers < 2)
+            {
+                write_cell(x, y, VAL_CHAR_EMPTY, world2);
+
+                continue;
+            }
+
+            if (neighbourNumbers > 3)
+            {
+                write_cell(x, y, VAL_CHAR_EMPTY, world2);
+
+                continue;
+            }
+
+            if (currentCellVal == VAL_CHAR_EMPTY && neighbourNumbers == 3)
+            {
+                if (numberNeighboursO > numberNeighboursX)
+                {
+                    write_cell(x, y, VAL_CHAR_O, world2);
+                }
+                else // (numberNeighboursX > numberNeighboursO)
+                {
+                    write_cell(x, y, VAL_CHAR_X, world2);
+                }
+
+                continue;
+            }
+
+            write_cell(x, y, currentCellVal, world2);
         }
     }
 
@@ -380,7 +410,7 @@ void print(unsigned int* world)
             puts("");
         }
 
-        if (world[i] == VAL_CHAR_NULL)
+        if (world[i] == VAL_CHAR_EMPTY)
         {
             fputs(" ", stdout);
         }
@@ -408,6 +438,7 @@ void print(unsigned int* world)
     Thread_Sleep(1);
 }
 
+
 // main
 int main(void)
 {
@@ -418,10 +449,10 @@ int main(void)
     unsigned int* tmpSwapWorldPtr;
 
     // getting started  
-    world1 = initialize_dummy();
+    //world1 = initialize_dummy();
     //world1 = initialize_random();
     //world1 = initialize_glider();
-    //world1 = initialize_small_exploder();
+    world1 = initialize_small_exploder();
     world2 = allocate();
 
     print(world1);
