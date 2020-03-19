@@ -12,13 +12,17 @@
 #include <stdlib.h>
 
 #if defined(_MSC_VER)
-    #include <synchapi.h>
+    #include <windows.h>
 #else
     #include <unistd.h>
 #endif
 
 #define N 32
 #define itMax 20
+
+#define VAL_CHAR_NULL 0
+#define VAL_CHAR_O 1
+#define VAL_CHAR_X 2
 
 #if defined(_MSC_VER)
 static void Thread_Sleep(DWORD seconds)
@@ -84,15 +88,15 @@ unsigned int* initialize_random()
         {
             if (rand() % 5 != 0)
             {
-                cell = 0;
+                cell = VAL_CHAR_NULL;
             }
             else if (rand() % 2 == 0)
             {
-                cell = 1;
+                cell = VAL_CHAR_O;
             }
             else
             {
-                cell = 2;
+                cell = VAL_CHAR_X;
             }
 
             write_cell(x, y, cell, world);
@@ -137,7 +141,7 @@ unsigned int* initialize_glider()
     {
         for (y = 0; y < N; y++)
         {
-            write_cell(x, y, 0, world);
+            write_cell(x, y, VAL_CHAR_NULL, world);
         }
     }
 
@@ -146,25 +150,25 @@ unsigned int* initialize_glider()
     x = mx;
     y = my + 1;
 
-    write_cell(x, y, 1, world);
+    write_cell(x, y, VAL_CHAR_O, world);
 
     x = mx + 1;
     y = my + 2;
 
-    write_cell(x, y, 1, world);
+    write_cell(x, y, VAL_CHAR_O, world);
 
     x = mx + 2;
     y = my;
 
-    write_cell(x, y, 1, world);
+    write_cell(x, y, VAL_CHAR_O, world);
 
     y = my + 1;
 
-    write_cell(x, y, 1, world);
+    write_cell(x, y, VAL_CHAR_O, world);
 
     y = my + 2;
     
-    write_cell(x, y, 1, world);
+    write_cell(x, y, VAL_CHAR_O, world);
 
     return world;
 }
@@ -184,7 +188,7 @@ unsigned int* initialize_small_exploder()
     {
         for (y = 0; y < N; y++)
         {
-            write_cell(x, y, 0, world);
+            write_cell(x, y, VAL_CHAR_NULL, world);
         }
     }
 
@@ -193,34 +197,34 @@ unsigned int* initialize_small_exploder()
     x = mx;
     y = my + 1;
 
-    write_cell(x, y, 2, world);
+    write_cell(x, y, VAL_CHAR_X, world);
 
     x = mx + 1;
     y = my;
 
-    write_cell(x, y, 2, world);
+    write_cell(x, y, VAL_CHAR_X, world);
 
     y = my + 1;
 
-    write_cell(x, y, 2, world);
+    write_cell(x, y, VAL_CHAR_X, world);
 
     y = my + 2;
 
-    write_cell(x, y, 2, world);
+    write_cell(x, y, VAL_CHAR_X, world);
 
     x = mx + 2;
     y = my;
 
-    write_cell(x, y, 2, world);
+    write_cell(x, y, VAL_CHAR_X, world);
 
     y = my + 2;
 
-    write_cell(x, y, 2, world);
+    write_cell(x, y, VAL_CHAR_X, world);
 
     x = mx + 3;
     y = my + 1;
 
-    write_cell(x, y, 2, world);
+    write_cell(x, y, VAL_CHAR_X, world);
 
     return world;
 }
@@ -238,11 +242,11 @@ void update(int x, int y, int neighbourX, int neighbourY, unsigned int* world, i
 {
     unsigned int cell = read_cell(x, y, neighbourX, neighbourY, world);
 
-    if (cell != 0)
+    if (cell != VAL_CHAR_NULL)
     {
         (*neighbourNumbers)++;
 
-        if (cell == 1)
+        if (cell == VAL_CHAR_O)
         {
             (*numberNeighboursO)++;
         }
@@ -259,21 +263,52 @@ void neighbors(int x, int y, unsigned int* world, int* neighbourNumbers, int* nu
     int neighbourX;
     int neighbourY;
 
-    (*neighbourNumbers) = 0;  (*numberNeighboursO) = 0;  (*numberNeighboursX) = 0;
+    (*neighbourNumbers) = 0;
+    (*numberNeighboursO) = 0;
+    (*numberNeighboursX) = 0;
 
     // same line
-    neighbourX = -1;  neighbourY = 0;   update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
-    neighbourX = +1;  neighbourY = 0;   update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
+    neighbourX = -1;
+    neighbourY = 0;
+    
+    update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
+    
+    neighbourX = +1;
+    neighbourY = 0;
+    
+    update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
 
     // one line down
-    neighbourX = -1;  neighbourY = +1;  update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
-    neighbourX = 0;  neighbourY = +1;  update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
-    neighbourX = +1;  neighbourY = +1;  update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
+    neighbourX = -1;
+    neighbourY = +1;
+    
+    update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
+    
+    neighbourX = 0;
+    neighbourY = +1;
+    
+    update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
+    
+    neighbourX = +1;
+    neighbourY = +1;
+    
+    update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
 
     // one line up
-    neighbourX = -1;  neighbourY = -1;  update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
-    neighbourX = 0;  neighbourY = -1;  update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
-    neighbourX = +1;  neighbourY = -1;  update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
+    neighbourX = -1;
+    neighbourY = -1;
+
+    update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
+    
+    neighbourX = 0;
+    neighbourY = -1;
+    
+    update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
+    
+    neighbourX = +1;
+    neighbourY = -1;
+    
+    update(x, y, neighbourX, neighbourY, world, neighbourNumbers, numberNeighboursO, numberNeighboursX);
 }
 
 // computing a new generation
@@ -345,17 +380,17 @@ void print(unsigned int* world)
             puts("");
         }
 
-        if (world[i] == 0)
+        if (world[i] == VAL_CHAR_NULL)
         {
             fputs(" ", stdout);
         }
 
-        if (world[i] == 1)
+        if (world[i] == VAL_CHAR_O)
         {
             fputs("o", stdout);
         }
 
-        if (world[i] == 2)
+        if (world[i] == VAL_CHAR_X)
         {
             fputs("x", stdout);
         }
@@ -374,7 +409,7 @@ void print(unsigned int* world)
 }
 
 // main
-int main(int argc, char* argv[])
+int main(void)
 {
     int it;
     int change;
@@ -391,7 +426,8 @@ int main(int argc, char* argv[])
 
     print(world1);
 
-    it = 0;  change = 1;
+    it = 0;
+    change = 1;
 
     while (change && it < itMax)
     {
