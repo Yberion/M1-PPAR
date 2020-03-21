@@ -30,6 +30,7 @@ static void Thread_Sleep(DWORD seconds)
     Sleep(1000 * seconds);
 }
 #else
+    #include <string.h>
 static void Thread_Sleep(unsigned int seconds)
 {
     sleep(seconds);
@@ -333,7 +334,7 @@ short generateNewState(unsigned int* world1, unsigned int* world2, int xStart, i
     }
     */
 
-    // Ajustement à faire ici en parallèle, on va vouloir clean que le chunck
+    // Ajustement ï¿½ faire ici en parallï¿½le, on va vouloir clean que le chunck
     memset(world2, 0, N * N);
 
     // generating the new world
