@@ -498,7 +498,7 @@ int main(int argc, char **argv)
     world2 = allocate();
 
     // Computing first and last row index
-    sectionSize = (N * N) / processNumber;
+    sectionSize = N / processNumber;
     sectionStart = sectionSize * currentRank;
     sectionEnd = sectionStart + sectionSize - 1;
 
