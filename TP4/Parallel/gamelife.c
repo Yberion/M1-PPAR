@@ -28,14 +28,14 @@
 
 #if defined(_MSC_VER)
 static void Thread_Sleep(DWORD seconds)
-{
-    Sleep(1000 * seconds);
-}
+    {
+        Sleep(1000 * seconds);
+    }
 #else
-static void Thread_Sleep(unsigned int seconds)
-{
-    sleep(seconds);
-}
+    static void Thread_Sleep(unsigned int seconds)
+    {
+        sleep(seconds);
+    }
 #endif
 
 // Allocation dynamique du tableau
@@ -335,8 +335,7 @@ short generateNewState(unsigned int* world1, unsigned int* world2, int xStart, i
     }
     */
 
-    // Ajustement � faire ici en parall�le, on va vouloir clean que le chunck
-    memset(world2, xStart, xEnd);
+    memset(world2, 0, N * N);
 
     // generating the new world
     for (x = xStart; x <= xEnd; x++)
@@ -449,88 +448,104 @@ int main(int argc, char **argv)
     unsigned int* world1;
     unsigned int* world2;
     unsigned int* tmpSwapWorldPtr;
-    int sectionsize, sectionstart, sectionend;
+    
+    int sectionSize;
+    int sectionStart;
+    int sectionEnd;
 
-    int rank, nbproc, aboverank, belowrank, targetindex;
+    int currentRank;
+    int processNumber;
+    int aboverank;
+    int belowrank;
+    int targetIndex;
 
     MPI_Status status;
     MPI_Request request;
 
     MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &nbproc);
-     
-    aboverank = rank == 0 ? nbproc-1 : rank-1;
-    belowrank = rank == nbproc-1 ? 0 : rank+1;
-
-    if(N%nbproc != 0){
+    MPI_Comm_rank(MPI_COMM_WORLD, &currentRank);
+    MPI_Comm_size(MPI_COMM_WORLD, &processNumber);
+    
+    if (N % processNumber != 0)
+    {
         printf("N is not divisible by process number\n");
+
         MPI_Finalize();
-        exit(1);
+
+        exit(EXIT_FAILURE);
     }
 
-    if(rank == 0){
+    belowrank = (currentRank == processNumber - 1) ? 0 : currentRank + 1;
+    aboverank = (currentRank == 0) ? processNumber - 1 : currentRank - 1;
+    
+    if (currentRank == 0)
+    {
         // getting started  
         // world1 = initialize_dummy();
         //world1 = initialize_random();
         //world1 = initialize_glider();
         world1 = initialize_small_exploder();
-    
+
         print(world1);
-    }else{
+    }
+    else
+    {
         world1 = allocate();
     }
 
-    MPI_Bcast(world1, N*N, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(world1, N * N, MPI_INT, 0, MPI_COMM_WORLD);
+    
     world2 = allocate();
 
     // Computing first and last row index
-    sectionsize = N/nbproc;
-    sectionstart = sectionsize*rank;
-    sectionend = sectionstart + sectionsize-1;
-    
+    sectionSize = (N * N) / processNumber;
+    sectionStart = sectionSize * currentRank;
+    sectionEnd = sectionStart + sectionSize - 1;
+
     it = 0;
     change = 1;
 
     while (change && it < itMax)
     {
-        change = generateNewState(world1, world2, sectionstart, sectionend);
-        
+        change = generateNewState(world1, world2, sectionStart, sectionEnd);
+
         tmpSwapWorldPtr = world1;
         world1 = world2;
         world2 = tmpSwapWorldPtr;
 
         tmpSwapWorldPtr = NULL;
 
+        targetIndex = sectionEnd * N;
 
-        targetindex = sectionend*N;
-        MPI_Isend(&world1[targetindex], N, MPI_INT, belowrank, 0, MPI_COMM_WORLD, &request);
+        MPI_Isend(&world1[targetIndex], N, MPI_INT, belowrank, 0, MPI_COMM_WORLD, &request);
 
-        targetindex = sectionstart == 0 ? N-1 : sectionstart-1;
-        targetindex = targetindex*N;
-        MPI_Recv(&world1[targetindex], N, MPI_INT, aboverank, 0, MPI_COMM_WORLD, &status);
-
-        MPI_Wait(&request, &status);
-
-
-        targetindex = sectionstart*N;
-        MPI_Isend(&world1[targetindex], N, MPI_INT, aboverank, 0, MPI_COMM_WORLD, &request);
-
-        targetindex = sectionend == N-1 ? 0 : sectionend+1;
-        targetindex = targetindex * N;
-        MPI_Recv(&world1[targetindex], N, MPI_INT, belowrank, 0, MPI_COMM_WORLD, &status);
+        targetIndex = (sectionStart == 0) ? N - 1 : sectionStart - 1;
+        targetIndex = targetIndex * N;
+        
+        MPI_Recv(&world1[targetIndex], N, MPI_INT, aboverank, 0, MPI_COMM_WORLD, &status);
 
         MPI_Wait(&request, &status);
 
+        targetIndex = sectionStart * N;
+
+        MPI_Isend(&world1[targetIndex], N, MPI_INT, aboverank, 0, MPI_COMM_WORLD, &request);
+
+        targetIndex = (sectionEnd == N - 1) ? 0 : sectionEnd + 1;
+        targetIndex = targetIndex * N;
+
+        MPI_Recv(&world1[targetIndex], N, MPI_INT, belowrank, 0, MPI_COMM_WORLD, &status);
+
+        MPI_Wait(&request, &status);
 
         it++;
     }
 
-    memcpy(&world2[sectionstart*N], &world1[sectionstart*N], N);
+    memcpy(&world2[sectionStart * N], &world1[sectionStart * N], N);
 
-    MPI_Gather(&world2[sectionstart*N], N*sectionsize, MPI_INT, world1, N*sectionsize, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(&world2[sectionStart * N], N * sectionSize, MPI_INT, world1, N * sectionSize, MPI_INT, 0, MPI_COMM_WORLD);
 
-    if(rank == 0){
+    if (currentRank == 0)
+    {
         print(world1);
     }
 

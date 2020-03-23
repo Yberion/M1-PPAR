@@ -15,6 +15,7 @@
     #include <windows.h>
 #else
     #include <unistd.h>
+    #include <string.h>
 #endif
 
 #define N 32
@@ -25,16 +26,15 @@
 #define VAL_CHAR_X 2
 
 #if defined(_MSC_VER)
-static void Thread_Sleep(DWORD seconds)
-{
-    Sleep(1000 * seconds);
-}
+    static void Thread_Sleep(DWORD seconds)
+    {
+        Sleep(1000 * seconds);
+    }
 #else
-    #include <string.h>
-static void Thread_Sleep(unsigned int seconds)
-{
-    sleep(seconds);
-}
+    static void Thread_Sleep(unsigned int seconds)
+    {
+        sleep(seconds);
+    }
 #endif
 
 // Allocation dynamique du tableau
@@ -333,8 +333,6 @@ short generateNewState(unsigned int* world1, unsigned int* world2, int xStart, i
         }
     }
     */
-
-    // Ajustement � faire ici en parall�le, on va vouloir clean que le chunck
     memset(world2, 0, N * N);
 
     // generating the new world
