@@ -7,29 +7,29 @@
 ```C
 float log2_series_brandon(int n)
 {
-	float result = 0.0F;
+    float result = 0.0F;
 
-	for (int i = 0; i < n; ++i)
-	{
-		result += (powf(-1, i)) / (i + 1);
-	}
-	
-	return result;
+    for (int i = 0; i < n; ++i)
+    {
+        result += (powf(-1, i)) / (i + 1);
+    }
+
+    return result;
 }
 
 float log2_series_thomas(int n)
 {
-	float res = 0.0F;
-	
+    float res = 0.0F;
+
     int op = 1;
-	
+
     for(int i=1; i<=n; i++)
-	{
+    {
         res += (float) 1/i * op;
         op *= -1;
     }
-	
-	return res;
+
+    return res;
 }
 ```
 
