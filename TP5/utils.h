@@ -1,5 +1,6 @@
 // Helper functions
 #include <stdio.h>
+#include <math.h>
 
 // From CUDA SDK
 #  define CUDA_SAFE_CALL_NO_SYNC( call) do {                                 \
