@@ -77,12 +77,16 @@ int main(int argc, char ** argv)
     CUDA_SAFE_CALL(cudaEventCreate(&stop));
 
     int results_size = num_threads;
+    int alloc_size = results_size*sizeof(float);
     float * data_out_cpu;
     // Allocating output data on CPU
 	// TODO
+    data_out_cpu = malloc(alloc_size);
 
 	// Allocating output data on GPU
     // TODO
+    float * data_out_gpu;
+    cudaMalloc((void **)&data_out_gpu, alloc_size);
 
     // Start timer
     CUDA_SAFE_CALL(cudaEventRecord(start, 0));
@@ -96,6 +100,7 @@ int main(int argc, char ** argv)
 
     // Get results back
     // TODO
+    cudaMemcpy(data_out_cpu, data_out_gpu, alloc_size, cudaMemcpyDeviceToHost);
     
     // Finish reduction
     // TODO
@@ -103,6 +108,7 @@ int main(int argc, char ** argv)
     
     // Cleanup
     // TODO
+    cudaFree(data_out_gpu);
     
     printf("GPU results:\n");
     printf(" Sum: %f\n", sum);
