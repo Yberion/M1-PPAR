@@ -82,7 +82,7 @@ int main(int argc, char ** argv)
     // Allocating output data on CPU
 	// TODO
     float* data_out_cpu;
-    data_out_cpu = malloc(alloc_size);
+    data_out_cpu = calloc(results_size, sizeof(float));
 
 	// Allocating output data on GPU
     // TODO
@@ -92,6 +92,9 @@ int main(int argc, char ** argv)
 
     cudaMalloc((void **)&data_out_gpu, alloc_size);
     cudaMalloc((void **)&data_size_gpu, sizeof(int));
+
+    cudaMemset((void *)data_out_gpu, 0, alloc_size);
+    cudaMemset((void *)data_size_gpu, 0, sizeof(int));
 
     cudaMemcpy(data_size_gpu, &data_size_per_thread, sizeof(int), cudaMemcpyHostToDevice);
 
