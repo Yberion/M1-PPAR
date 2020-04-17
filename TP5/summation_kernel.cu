@@ -40,7 +40,7 @@ __global__ void summation_kernel_2(int data_size, float* data_out)
 	int op;
 	float res = 0.0F;
 
-	for (int i = 1; i <= data_size: ++i)
+	for (int i = 1; i <= data_size; ++i)
 	{
 		op = (i % 2 == 0) ? 1 : -1;
 
