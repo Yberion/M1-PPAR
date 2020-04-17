@@ -81,7 +81,7 @@ int main(int argc, char ** argv)
 
     // Allocating output data on CPU
 	// TODO
-    float* data_out_cpu = (float *)data_out_cpu = calloc(results_size, sizeof(float));
+    float* data_out_cpu = (float *)calloc(results_size, sizeof(float));
 
 	// Allocating output data on GPU
     // TODO
