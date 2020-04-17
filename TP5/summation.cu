@@ -88,11 +88,12 @@ int main(int argc, char ** argv)
     // TODO
     float* data_out_gpu;
     int* data_size_gpu;
+    int data_size_per_thread = data_size / num_threads;
 
     cudaMalloc((void **)&data_out_gpu, alloc_size);
     cudaMalloc((void **)&data_size_gpu, sizeof(int));
 
-    cudaMemcpy(data_size_gpu, data_size, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(data_size_gpu, &data_size_per_thread, sizeof(int), cudaMemcpyHostToDevice);
 
     // Start timer
     CUDA_SAFE_CALL(cudaEventRecord(start, 0));
