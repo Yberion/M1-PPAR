@@ -97,6 +97,7 @@ int main(int argc, char ** argv)
     // Execute kernel
     // TODO
     summation_kernel<<<blocks_in_grid, threads_per_block, sMem_size>>>(data_size_per_thread, data_out_gpu);
+    //summation_kernel_2<<<blocks_in_grid, threads_per_block, sMem_size>>>(data_size_per_thread, data_out_gpu);
 
     // Stop timer
     CUDA_SAFE_CALL(cudaEventRecord(stop, 0));

@@ -40,11 +40,11 @@ __global__ void summation_kernel_2(int data_size, float* data_out)
 	int op;
 	float res = 0.0F;
 
-	for (int i = 1; i <= data_size; ++i)
+	for (int i = 0; i < data_size; ++i)
 	{
 		op = (i % 2 == 0) ? 1 : -1;
 
-		res += (float) 1 / (threadNumber + (i * data_size)) * op;
+		res += (i == 0 && threadNumber == 0) ? 0 : (float) 1 / (threadNumber + (i * data_size)) * op;
 	}
 
 	data_out[threadNumber] = res;
