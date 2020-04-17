@@ -117,9 +117,25 @@ for(int j = ind * data_size; j < (ind + 1) * data_size; j++)
 data_out[ind] = res;
 ```
 
-Implémentation de la solution 2 avec le ``pas``.
+Implémentation de la solution 2 avec le ``pas``, égale ici à ``(i * data_size)``. Malheureusement nous ne trouvons pas pourquoi elle ne fonctionne pas.
 
 ```C
+__global__ void summation_kernel_2(int data_size, float* data_out)
+{
+	int threadNumber = blockIdx.x * blockDim.x + threadIdx.x;
+
+	int op;
+	float res = 0.0F;
+
+	for (int i = 0; i < data_size; ++i)
+	{
+		op = (i % 2 == 0) ? 1 : -1;
+
+		res += (i == 0 && threadNumber == 0) ? 0 : (float) 1 / (threadNumber + (i * data_size)) * op;
+	}
+
+	data_out[threadNumber] = res;
+}
 ```
 
 ## Question 6
@@ -139,9 +155,18 @@ GPU results:
 
 Sans surprise, on note une différence nette entre la version CPU et la version GPU, explicable par l'utilisation de parallélisme pour la version du processeur graphique.
 
-La seconde implémentation retourne : 
+La seconde implémentation retourne (ne fonctionne pas) : 
 
 ```
+CPU result: 0.693138
+ log(2)=0.693147
+ time=0.641470s
+GPU results:
+ Sum: inf
+ Total time: 0.0193749 s,
+ Per iteration: 0.144355 ns
+ Throughput: 27.7095 GB/s
+
 ```
 
 ## Question 7
