@@ -69,6 +69,7 @@ int main(int argc, char ** argv)
     int threads_per_block = 4 * 32;
     int blocks_in_grid = 8;
     int num_threads = threads_per_block * blocks_in_grid;
+    int sMem_size = threads_per_block * sizeof(float);
 
     // Timer initialization
     cudaEvent_t start, stop;
@@ -95,7 +96,7 @@ int main(int argc, char ** argv)
 
     // Execute kernel
     // TODO
-    summation_kernel<<<blocks_in_grid, threads_per_block>>>(data_size_per_thread, data_out_gpu);
+    summation_kernel<<<blocks_in_grid, threads_per_block, sMem_size>>>(data_size_per_thread, data_out_gpu);
 
     // Stop timer
     CUDA_SAFE_CALL(cudaEventRecord(stop, 0));
@@ -116,7 +117,6 @@ int main(int argc, char ** argv)
     
     // Cleanup
     // TODO
-    //cudaFree(data_size_gpu);
     cudaFree(data_out_gpu);
     free(data_out_cpu);
     
