@@ -1,7 +1,7 @@
 
 // GPU kernel
-__global__ void summation_kernel(int data_size, float* data_out)
 // data_size = data_size_per_thread
+__global__ void summation_kernel(int data_size, float* data_out)
 {
 	int ind = blockIdx.x * blockDim.x + threadIdx.x;
 	float res = 0.0F;
