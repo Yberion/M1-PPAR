@@ -1,7 +1,3 @@
----
-tags: M1-PPAR
----
-
 # Compte rendu - PPAR GPU Lab 0 & 1
 
 ### Brandon Largeau - Thomas Esseul
@@ -78,10 +74,13 @@ cudaMalloc((void **)&data_out_gpu, alloc_size);
 cudaMalloc((void **)&data_size_gpu, sizeof(int));
 ```
 
-On copie ensuite ``data_size`` dans ``data_size_gpu`` :
+Chaque thread doit gérer ``data_size / num_threads`` données.
+Comme ``cudaMemcpy()`` attend des adresses mémoire, on créé une variable ``data_size_per_thread`` qui contiendra le le résultat de ``data_size / num_threads``.
+
+On copie ``data_size_per_thread`` dans ``data_size_gpu`` :
 
 ```C
-cudaMemcpy(data_size_gpu, data_size, sizeof(int), cudaMemcpyHostToDevice);
+cudaMemcpy(data_size_gpu, &data_size_per_thread, sizeof(int), cudaMemcpyHostToDevice);
 ```
 
 Il y aura l'exécution du kernel.
