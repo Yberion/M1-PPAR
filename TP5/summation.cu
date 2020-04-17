@@ -64,11 +64,10 @@ int main(int argc, char ** argv)
     printf("CPU result: %f\n", log2);
     printf(" log(2)=%f\n", log(2.0));
     printf(" time=%fs\n", end_time - start_time);
-    
+
     // Parameter definition
     int threads_per_block = 4 * 32;
     int blocks_in_grid = 8;
-    
     int num_threads = threads_per_block * blocks_in_grid;
 
     // Timer initialization
@@ -86,16 +85,10 @@ int main(int argc, char ** argv)
 	// Allocating output data on GPU
     // TODO
     float* data_out_gpu;
-    int* data_size_gpu;
     int data_size_per_thread = data_size / num_threads;
 
     cudaMalloc((void **)&data_out_gpu, alloc_size);
-    cudaMalloc((void **)&data_size_gpu, sizeof(int));
-
     cudaMemset((void *)data_out_gpu, 0, alloc_size);
-    cudaMemset((void *)data_size_gpu, 0, sizeof(int));
-
-    cudaMemcpy(data_size_gpu, &data_size_per_thread, sizeof(int), cudaMemcpyHostToDevice);
 
     // Start timer
     CUDA_SAFE_CALL(cudaEventRecord(start, 0));
@@ -111,7 +104,7 @@ int main(int argc, char ** argv)
     // Get results back
     // TODO
     cudaMemcpy(data_out_cpu, data_out_gpu, alloc_size, cudaMemcpyDeviceToHost);
-    
+
     // Finish reduction
     // TODO
 	float sum = 0.0F;
@@ -123,7 +116,7 @@ int main(int argc, char ** argv)
     
     // Cleanup
     // TODO
-    cudaFree(data_size_gpu);
+    //cudaFree(data_size_gpu);
     cudaFree(data_out_gpu);
     free(data_out_cpu);
     
