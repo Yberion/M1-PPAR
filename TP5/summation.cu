@@ -110,7 +110,7 @@ int main(int argc, char ** argv)
     // Finish reduction
     // TODO
 	float sum = 0.0F;
-
+    
     for (int i = 0; i < results_size; ++i)
     {
         sum += data_out_cpu[i];
