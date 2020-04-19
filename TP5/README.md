@@ -7,29 +7,29 @@
 ```C
 float log2_series_brandon(int n)
 {
-	float result = 0.0F;
+    float result = 0.0F;
 
-	for (int i = 0; i < n; ++i)
-	{
-		result += (powf(-1, i)) / (i + 1);
-	}
-	
-	return result;
+    for (int i = 0; i < n; ++i)
+    {
+        result += (powf(-1, i)) / (i + 1);
+    }
+
+    return result;
 }
 
 float log2_series_thomas(int n)
 {
-	float res = 0.0F;
-	
+    float res = 0.0F;
+
     int op = 1;
-	
+
     for(int i=1; i<=n; i++)
-	{
+    {
         res += (float) 1/i * op;
         op *= -1;
     }
-	
-	return res;
+
+    return res;
 }
 ```
 
@@ -53,9 +53,9 @@ Exemple avec ``m = 3`` threads et ``n = 9`` :
 
 ### Solution 2
 
-Pour la seconde solution, le thread ``i`` calculera les résultats pour les données avec un pas égale à ``n/m``.
+Pour la seconde solution, le thread ``i`` calculera les résultats pour les données avec un pas égale à ``m``.
 
-Exemple avec ``m = 3`` threads, ``n = 9`` et donc un pas de ``n/m = 3`` :
+Exemple avec ``m = 3`` threads, ``n = 9`` et donc un pas de ``m = 3`` :
 
 - Thread_1 ``0, 3, 6``
 - Thread_2 ``1, 4, 7``
@@ -103,38 +103,53 @@ free(data_out_cpu);
 ## Question 5
 
 On implémente sur GPU la Solution 1, `ind` représente ici l'index global du thread puisque dans cette version on n'utilise pas la notion de bloc.
-```c
-int ind = blockIdx.x * blockDim.x + threadIdx.x;
-float res = 0.0F;
-int op = -1;
-
-for(int j = ind * data_size; j < (ind + 1) * data_size; j++)
+```C
+__global__ void summation_kernel(int data_size, float* data_out)
 {
-    res += j == 0 ? 0 : (float) 1 / j * op;
-    op *= -1;
-}
+    int ind = blockIdx.x * blockDim.x + threadIdx.x;
+    float res = 0.0F;
+    int op = -1;
 
-data_out[ind] = res;
+    for(int j = ind * data_size; j < (ind + 1) * data_size; j++)
+    {
+        res += j == 0 ? 0 : (float) 1 / j * op;
+        op *= -1;
+    }
+
+    data_out[ind] = res;
+}
 ```
 
-Implémentation de la solution 2 avec le ``pas``, égale ici à ``(i * data_size)``. Malheureusement nous ne trouvons pas pourquoi elle ne fonctionne pas.
+Implémentation de la solution 2 avec le ``pas``, égale ici à ``(i * num_threads)``.
 
 ```C
 __global__ void summation_kernel_2(int data_size, float* data_out)
 {
-	int threadNumber = blockIdx.x * blockDim.x + threadIdx.x;
+    int threadNumber = blockIdx.x * blockDim.x + threadIdx.x;
+    int num_threads = blockDim.x * gridDim.x;
 
-	int op;
-	float res = 0.0F;
+    int op;
+    float res = 0.0F;
 
-	for (int i = 0; i < data_size; ++i)
-	{
-		op = (i % 2 == 0) ? 1 : -1;
+    for (int i = 0; i < data_size; ++i)
+    {
+        op = (threadNumber % 2 == 0) ? -1 : 1;
 
-		res += (i == 0 && threadNumber == 0) ? 0 : (float) 1 / (threadNumber + (i * data_size)) * op;
-	}
+        res += (i == 0 && threadNumber == 0) ? 0 : (float) 1 / (threadNumber + (i * num_threads)) * op;
+    }
 
-	data_out[threadNumber] = res;
+    data_out[threadNumber] = res;
+}
+```
+
+La réduction est faite sur le CPU :
+
+```C
+float sum = 0.0F;
+
+for (int i = 0; i < results_size; ++i)
+{
+    sum += data_out_cpu[i];
 }
 ```
 
@@ -155,19 +170,20 @@ GPU results:
 
 Sans surprise, on note une différence nette entre la version CPU et la version GPU, explicable par l'utilisation de parallélisme pour la version du processeur graphique.
 
-La seconde implémentation retourne (ne fonctionne pas) : 
+La seconde implémentation retourne : 
 
 ```
 CPU result: 0.693138
  log(2)=0.693147
- time=0.641470s
+ time=0.642594s
 GPU results:
- Sum: inf
- Total time: 0.0193749 s,
- Per iteration: 0.144355 ns
- Throughput: 27.7095 GB/s
-
+ Sum: 0.692439
+ Total time: 0.0192812 s,
+ Per iteration: 0.143656 ns
+ Throughput: 27.8443 GB/s
 ```
+
+On note qu'avec cette implémentation il y a une différence sur le résultat (peut-être un problème au niveau de l'implémentation?) tout en ayant toujours une meilleure performance que la version CPU.
 
 ## Question 7
 
@@ -175,14 +191,43 @@ Sur la machine utilisée pour les tests, la configuration avec l'exécution la p
 
 ## Question 8
 
-On peut réduire la quantité de données retournée au CPU en ne retournant qu'une donnée par bloc. Pour ce faire, le thread 0 de chaque bloc fera la somme des valeurs calculées par le bloc. Les valeurs intermédiaires calculées par chaque thread seront alors stockées en mémoire partagée ``s_res``, la mémoire partagée a ici un montant ``sMem_size`` représentant le ``nombre de threads * sizeof(float)`` défini lors de l'appel de la fonction.
+(Fait sur ``summation_kernel()``)
+
+On peut réduire la quantité de données retournée au CPU en ne retournant qu'une donnée par bloc. Pour ce faire, le thread ``0`` de chaque bloc fera la somme des valeurs calculées par le bloc.
+
+Les valeurs intermédiaires calculées par chaque thread seront alors stockées en mémoire partagée ``s_res``, la mémoire partagée a ici un montant ``sMem_size`` représentant le ``nombre de threads dans un bloc * sizeof(float)`` défini lors de l'appel de la fonction.
+
+Chaque bloc a sa propre version de cette mémoire partagée, elle est partagée entre les threads d'un même bloc, mais pas entre chaque bloc.
+
+Chaque bloc doit avoir terminé son travail avant de faire le résultat final de ce bloc, c'est pour cela qu'on utilise le principe de barrière avec ``__syncthreads();``.
+
+Les résultats sont stockés dans la mémoire globale ``data_out`` (utile pour la question 9 qui plus est).
 
 ```C
+// GPU kernel
+// data_size = data_size_per_thread
 __global__ void summation_kernel(int data_size, float* data_out)
 {
+    // Question 8
     extern __shared__ float s_res[];
 
-    ...
+    int ind = blockIdx.x * blockDim.x + threadIdx.x;
+    int tid = threadIdx.x;
+
+    float res = 0.0F;
+    int op = -1;
+
+    for(int j = ind * data_size; j < (ind + 1) * data_size; j++)
+    {
+        res += j == 0 ? 0 : (float) 1 / j * op;
+        op *= -1;
+    }
+
+    //data_out[ind] = res;
+
+    // Question 8
+
+    s_res[tid] = res;
 
     __syncthreads();
 
@@ -195,6 +240,86 @@ __global__ void summation_kernel(int data_size, float* data_out)
 
         data_out[blockIdx.x] = res;
     }
+}
 ```
 
+Bien entendu la mémoire allouée pour ``data_out`` est trop élevée, on devrait passer de ``num_threads`` à ``blocks_in_grid``.
+
+On a gardé la même boucle de réduction sur le CPU qui itère sur tous les élements de ``data_out_cpu`` (même si on utilise que ``blocks_in_grid`` cases). Le résultat est le même étant donné que les cases non utilisées sont à ``0``. On sait que ce n'est pas ce qui est le mieux, mais de cette façon on garde un code CPU qui fonctionne pour toutes les implémentations, pour les besoins du TP.
+
 ## Question 9
+
+(Fait sur ``summation_kernel()``)
+
+Ici c'est le thread ``0`` du bloc ``0`` qui fera le calcul final.
+
+On attend le résultat final de chaque bloc avant de faire le calcul final, utilisation de ``__syncthreads();``.
+
+On met ``res`` à ``0.0F`` car on va l'utiliser plus bas.
+
+On accumule les résultats de chaque bloc dans la variable ``res``, on met les ``gridDim.x`` premiers éléments de ``data_out`` à ``0`` (c'est les seuls cases utilisées, le reste est à ``0``) et on stocke le résultat à l'indice ``0`` de ``data_out``.
+
+```C
+// GPU kernel
+// data_size = data_size_per_thread
+__global__ void summation_kernel(int data_size, float* data_out)
+{
+    // Question 8
+    extern __shared__ float s_res[];
+
+    int ind = blockIdx.x * blockDim.x + threadIdx.x;
+    int tid = threadIdx.x;
+
+    float res = 0.0F;
+    int op = -1;
+
+    for(int j = ind * data_size; j < (ind + 1) * data_size; j++)
+    {
+        res += j == 0 ? 0 : (float) 1 / j * op;
+        op *= -1;
+    }
+
+    //data_out[ind] = res;
+
+    // Question 8
+
+    s_res[tid] = res;
+
+    __syncthreads();
+
+    if(tid == 0)
+    {
+        for(int i = 1; i < blockDim.x; i++)
+        {
+            res += s_res[i];
+        }
+
+        data_out[blockIdx.x] = res;
+    }
+
+    // Question 9
+
+    __syncthreads();
+
+    res = 0.0F;
+
+    if (ind == 0)
+    {
+        for (int i = 0; i < gridDim.x; ++i)
+        {
+            res += data_out[i];
+        }
+
+        // Clean memory of the first "gridDim.x" elements of the global memory "data_out"
+        // because this is the only things being modified, the rest are only 0
+        memset(data_out, 0, gridDim.x);
+
+        // store the final result in the first indice (0)
+        data_out[0] = res;
+    }
+}
+```
+
+Bien entendu la mémoire allouée pour ``data_out`` est trop élevée, on devrait passer de ``num_threads`` à ``blocks_in_grid``.
+
+On a gardé la même boucle de réduction sur le CPU qui itère sur tous les élements de ``data_out_cpu`` (même si on utilise que ``1`` case). Le résultat est le même étant donné que les cases non utilisées sont à ``0``. On sait que ce n'est pas ce qui est le mieux, mais de cette façon on garde un code CPU qui fonctionne pour toutes les implémentations, pour les besoins du TP.
