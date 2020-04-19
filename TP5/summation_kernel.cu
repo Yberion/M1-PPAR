@@ -36,7 +36,8 @@ __global__ void summation_kernel(int data_size, float* data_out)
 __global__ void summation_kernel_2(int data_size, float* data_out)
 {
 	int threadNumber = blockIdx.x * blockDim.x + threadIdx.x;
-
+    int num_threads = blockDim.x * gridDim.x;
+    
 	int op;
 	float res = 0.0F;
 
@@ -44,7 +45,7 @@ __global__ void summation_kernel_2(int data_size, float* data_out)
 	{
 		op = (i % 2 == 0) ? 1 : -1;
 
-		res += (i == 0 && threadNumber == 0) ? 0 : (float) 1 / (threadNumber + (i * data_size)) * op;
+		res += (i == 0 && threadNumber == 0) ? 0 : (float) 1 / (threadNumber + (i * num_threads)) * op;
 	}
 
 	data_out[threadNumber] = res;
