@@ -3,7 +3,7 @@
 // data_size = data_size_per_thread
 __global__ void summation_kernel(int data_size, float* data_out)
 {
-    // Question 8
+	// Question 8
 	extern __shared__ float s_res[];
 
 	int ind = blockIdx.x * blockDim.x + threadIdx.x;
@@ -19,11 +19,11 @@ __global__ void summation_kernel(int data_size, float* data_out)
 	}
 
 	//data_out[ind] = res;
-	
+
 	// Question 8
-	
+
 	s_res[tid] = res;
-	
+
 	__syncthreads();
 
 	if(tid == 0)
@@ -35,27 +35,27 @@ __global__ void summation_kernel(int data_size, float* data_out)
 		
 		data_out[blockIdx.x] = res;
 	}
-	
+
 	// Question 9
-	
+
 	__syncthreads();
-    
-    res = 0.0F;
-    
-    if (ind == 0)
-    {
-        for (int i = 0; i < gridDim.x; ++i)
-        {
-            res += data_out[i];
-        }
-        
-        // Clean memory of the first "gridDim.x" elements of the global memory "data_out"
-        // because this is the only things being modified, the rest are only 0
-        memset(data_out, 0, gridDim.x);
-        
-        // store the final result in the first indice (0)
-        data_out[0] = res;
-    }
+
+	res = 0.0F;
+
+	if (ind == 0)
+	{
+		for (int i = 0; i < gridDim.x; ++i)
+		{
+			res += data_out[i];
+		}
+		
+		// Clean memory of the first "gridDim.x" elements of the global memory "data_out"
+		// because this is the only things being modified, the rest are only 0
+		memset(data_out, 0, gridDim.x);
+		
+		// store the final result in the first indice (0)
+		data_out[0] = res;
+	}
 }
 
 // GPU kernel
@@ -63,8 +63,8 @@ __global__ void summation_kernel(int data_size, float* data_out)
 __global__ void summation_kernel_2(int data_size, float* data_out)
 {
 	int threadNumber = blockIdx.x * blockDim.x + threadIdx.x;
-    int num_threads = blockDim.x * gridDim.x;
-    
+	int num_threads = blockDim.x * gridDim.x;
+
 	int op;
 	float res = 0.0F;
 
