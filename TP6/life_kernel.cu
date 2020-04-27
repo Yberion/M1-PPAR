@@ -22,9 +22,36 @@ __global__ void life_kernel(int * source_domain, int * dest_domain,
 	                       domain_x, domain_y);
     
     // TODO: Read the 8 neighbors and count number of blue and red
+    int redcells = 0;
+    int bluecells = 0;
+    int cell;
+
+    for(int line=-1; line<2; line++){
+        for(int column=-1; column<2; column++){
+            if(line != 0 && column != 0){   //Do not read myself
+                cell = read_cell(source_domain, tx, ty, line, column,
+                    domain_x, domain_y);
+                
+                if(cell == 1){
+                    redcells++;
+                }else if(cell == 2){
+                    bluecells++;
+                }
+            }
+        }
+    }
 
 	// TODO: Compute new value
+    int sum = redcells + bluecells;
+    int newvalue = 0;   // By default, the cell dies (or stay empty)
+
+    if(myself == 0 && sum == 3){    // New cell
+        newvalue = redcells > bluecells ? 1 : 2;
+    }else if(sum == 2 || sum == 3){  // Survives
+        newvalue = myself;
+    }
 	
 	// TODO: Write it in dest_domain
+    dest_domain[ty * domain_x + tx] = newvalue;
 }
 
