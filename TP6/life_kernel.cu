@@ -60,7 +60,7 @@ __global__ void life_kernel(int * source_domain, int * dest_domain, int domain_x
     }
     else if (sum == 2 || sum == 3)
     {
-        / Survives
+        // Survives
         newvalue = myself;
     }
 	
