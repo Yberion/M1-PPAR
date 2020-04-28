@@ -28,52 +28,52 @@ void init_data_toad(int * domain, int domain_x, int domain_y)
 // Color display code contributed by Louis Beziaud, Simon Bihel and Rémi Hutin, PPAR 2016/2017
 void print_domain(int* domain, int domain_x, int domain_y, int* red, int* blue)
 {
-	if (red != NULL)
+    if (red != NULL)
     {
         *red = 0;
     }
 
-	if (blue != NULL)
+    if (blue != NULL)
     {
         *blue = 0;
     }
 
-	for (int y = 0; y < domain_y; y++)
+    for (int y = 0; y < domain_y; y++)
     {
-		for (int x = 0; x < domain_x; x++)
+        for (int x = 0; x < domain_x; x++)
         {
-			int cell = domain[y * domain_x + x];
+            int cell = domain[y * domain_x + x];
 
-			switch (cell)
+            switch (cell)
             {
-				case 0:
-					printf("\033[40m  \033[0m");
+                case 0:
+                    printf("\033[40m  \033[0m");
 
-					break;
-				case 1:
-					printf("\033[41m  \033[0m");
+                    break;
+                case 1:
+                    printf("\033[41m  \033[0m");
 
-					break;
-				case 2:
-					printf("\033[44m  \033[0m");
+                    break;
+                case 2:
+                    printf("\033[44m  \033[0m");
 
-					break;
-				default:
-					break;
-			}
+                    break;
+                default:
+                    break;
+            }
 
-			if (red != NULL && cell == 1)
+            if (red != NULL && cell == 1)
             {
-				(*red)++;
-			}
+                (*red)++;
+            }
             else if (blue != NULL && cell == 2)
             {
-				(*blue)++;
-			}
-		}
+                (*blue)++;
+            }
+        }
 
-		printf("\n");
-	}
+        printf("\n");
+    }
 }
 
 int main(int argc, char ** argv)
@@ -97,7 +97,7 @@ int main(int argc, char ** argv)
     dim3 threads(threads_per_block);
 
     // Allocation of arrays
-    int * domain_gpu[2] = {NULL, NULL};
+    int* domain_gpu[2] = {NULL, NULL};
 
     // Arrays of dimensions domain.x * domain.y
     size_t domain_size = domain_x * domain_y / cells_per_word * sizeof(int);
@@ -111,8 +111,11 @@ int main(int argc, char ** argv)
     //init_data(domain_cpu, domain_x, domain_y);
     init_data_toad(domain_cpu, domain_x, domain_y);
 
+    // Count colors
     int red = 0;
     int blue = 0;
+
+    puts("======= BEFORE =======");
 
     print_domain(domain_cpu, domain_x, domain_y, &red, &blue);
 
@@ -156,8 +159,7 @@ int main(int argc, char ** argv)
     CUDA_SAFE_CALL(cudaFree(domain_gpu[0]));
     CUDA_SAFE_CALL(cudaFree(domain_gpu[1]));
 
-    // Count colors
-    
+    puts("======= AFTER =======");
 
     print_domain(domain_cpu, domain_x, domain_y, &red, &blue);
 
