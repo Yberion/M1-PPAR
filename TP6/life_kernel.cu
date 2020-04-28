@@ -1,5 +1,5 @@
 // Reads a cell at (x+dx, y+dy)
-__device__ int read_cell(int * source_domain, int x, int y, int dx, int dy, unsigned int domain_x, unsigned int domain_y)
+__device__ int read_cell(int* source_domain, int x, int y, int dx, int dy, unsigned int domain_x, unsigned int domain_y)
 {
     // Wrap around
     x = (unsigned int)(x + dx) % domain_x;
@@ -18,10 +18,10 @@ __global__ void life_kernel(int * source_domain, int * dest_domain, int domain_x
     {
         return;
     }
-    
+
     // Read cell
     int myself = read_cell(source_domain, tx, ty, 0, 0, domain_x, domain_y);
-    
+
     // TODO: Read the 8 neighbors and count number of blue and red
     int redcells = 0;
     int bluecells = 0;
@@ -48,7 +48,7 @@ __global__ void life_kernel(int * source_domain, int * dest_domain, int domain_x
         }
     }
 
-	// TODO: Compute new value
+    // TODO: Compute new value
     int sum = redcells + bluecells;
     // By default, the cell dies (or stay empty)
     int newvalue = 0;
@@ -63,8 +63,8 @@ __global__ void life_kernel(int * source_domain, int * dest_domain, int domain_x
         // Survives
         newvalue = myself;
     }
-	
-	// TODO: Write it in dest_domain
+
+    // TODO: Write it in dest_domain
     dest_domain[ty * domain_x + tx] = newvalue;
 }
 
