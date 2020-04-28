@@ -32,7 +32,7 @@ __global__ void life_kernel(int * source_domain, int * dest_domain, int domain_x
         for (int column = -1; column < 2; ++column)
         {
             //Do not read myself
-            if (line != 0 && column != 0)
+            if (!(line == 0 && column == 0))
             {
                 cell = read_cell(source_domain, tx, ty, line, column, domain_x, domain_y);
                 
