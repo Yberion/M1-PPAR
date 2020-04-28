@@ -17,14 +17,6 @@ void init_data(int* domain, int domain_x, int domain_y)
 
 void init_data_toad(int * domain, int domain_x, int domain_y)
 {
-    for(int i = 0; i < domain_y; ++i)
-    {
-        for(int j = 0; j < domain_x; ++j)
-        {
-            domain[i * domain_x + j] = 0;
-        }
-    }
-
     domain[64 * domain_x + 65] = 1;
     domain[64 * domain_x + 63] = 2;
     domain[65 * domain_x + 63] = 2;
@@ -113,7 +105,7 @@ int main(int argc, char ** argv)
     CUDA_SAFE_CALL(cudaMalloc((void**)&domain_gpu[0], domain_size));
     CUDA_SAFE_CALL(cudaMalloc((void**)&domain_gpu[1], domain_size));
 
-    int* domain_cpu = (int *)malloc(domain_size);
+    int* domain_cpu = (int *)calloc(domain_size, sizeof(int));
 
     // Arrays of dimensions pitch * domain.y
     //init_data(domain_cpu, domain_x, domain_y);
