@@ -79,7 +79,7 @@ Ce qui donne au niveaux des accès, une fois pour chaque case de la ligne couran
 
 En vert l'accès ``myself`` des cases sur le bloc de threads courant et en orange les voisins de la case ``myself``.
 
-Ici, les threads d'un bloc (``128`` threads par bloc) sont représentés sur une ligne, donc une dimension et il y a ``128`` blocs de threads.
+Ici, les threads d'un bloc (``128`` threads par bloc) sont représentés sur une ligne, donc une dimension et il y a ``128`` blocs de 128 threads.
 
 ![Image grille thread](img/grid.png)
 
@@ -108,3 +108,47 @@ On aurait alors besoin de ``128 + (4 * 16) + 4 = 196`` accès en lecture unique 
 Ceci n'est pas une représentation des ``128`` blocs, on se focalise sur un bloc de threads donné. J'ai représenté les blocs avec différentes couleurs, vert, gris, bleu et violet. On a sur cette image ``9`` blocs, c'est comme si on avait fait un zoom sur un bloc (bloc vert) au milieu de plein d'autres.
 
 ![Image grille thread](img/grid_q4.png)
+
+## Question 5
+
+Le code ne fonctionne pas.
+
+```C
+__global__ void life_kernel_q5(int* source_domain, int* dest_domain, int domain_x, int domain_y)
+```
+
+La question ne précisant pas s'il faut utiliser des blocs de threads ``2d``, on a choisi une stratégie simple pour réduire l'accès à la mémoire globale, c'est le but du jeu avant tout.
+
+On reprend le même principe que sur la question ``3``, on va déplacer les ``3`` lignes utiles dans la mémoire partagée.
+
+On va donc avoir une mémoire partagée égale à ``384`` cases avec l'exemple de base (``domaine_x`` et ``domaine_y`` égale à 128).
+
+Il est possible que le domaine change donc on alloue la mémoire partagée comme suit (on part du principe que ``threads_per_block`` = ``domaine_x``) :
+
+```C
+int shared_mem_size = (3 * domain_x) * sizeof(int);
+```
+
+On copie ensuite les ``3`` lignes nécessaires de la source à la mémoire partagée :
+
+```C
+extern __shared__ int sharedData[];
+
+int ligneDessous = ((int)blockIdx.y - 1 < 0) ? gridDim.y - 1 : blockIdx.y - 1;
+int ligneDessus = (blockIdx.y + 1 >= gridDim.y) ? 0 : blockIdx.y + 1;
+
+// Ligne de dessus
+memcpy(&sharedData[0 * domain_x], &source_domain[blockIdx.y * domain_x], domain_x);
+// Ligne courante
+memcpy(&sharedData[1 * domain_x], &source_domain[ligneDessus * domain_x], domain_x);
+// Ligne de dessous
+memcpy(&sharedData[2 * domain_x], &source_domain[ligneDessous * domain_x], domain_x);
+```
+
+Vu qu'on a une dimension de block étalée sur ``Y``, on vérifie si l'id du bloc courant ``-1`` est pas inférieur à ``0``, auquel cas, on le met à la taille de la grille sur ``Y`` ``- 1``. On vérifie aussi si l'id du bloc + 1 n'est pas supérieur à la taille de la grille, auquel cas, on le met à 0.
+
+La ligne courante commençant à ``sharedData[0]``.
+La ligne de dessus (sur le schéma la ligne orange au-dessus de la ligne verte) commençant à ``sharedData[1 * domain_x]``.
+La ligne de dessous (sur le schéma la ligne orange au-dessous de la ligne verte) commençant à ``sharedData[2 * domain_x]``.
+
+Le code ne fonctionne pas avec l'utilisation de la mémoire partagée, on a dû oublier de faire un changement et on manque de temps, il est aussi difficile de debug le code, ce qui est très problématique dans notre cas vu qu'il y a un ``an illegal memory access was encountered.``.
