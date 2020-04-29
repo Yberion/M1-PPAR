@@ -25,6 +25,27 @@ void init_data_toad(int * domain, int domain_x, int domain_y)
     domain[65 * domain_x + 62] = 1;
 }
 
+void init_data_small_exploder_single_player(int * domain, int domain_x, int domain_y)
+{
+    domain[64 * domain_x + 64] = 1;
+    domain[65 * domain_x + 63] = 1;
+    domain[65 * domain_x + 64] = 1;
+    domain[65 * domain_x + 65] = 1;
+    domain[66 * domain_x + 63] = 1;
+    domain[66 * domain_x + 65] = 1;
+    domain[67 * domain_x + 64] = 1;
+}
+
+void init_data_glider_single_player_test_torus(int * domain, int domain_x, int domain_y)
+{
+    domain[64 * domain_x + 64] = 1;
+    domain[65 * domain_x + 65] = 1;
+    domain[66 * domain_x + 63] = 1;
+    domain[66 * domain_x + 64] = 1;
+    domain[66 * domain_x + 65] = 1;
+
+}
+
 // Color display code contributed by Louis Beziaud, Simon Bihel and Rémi Hutin, PPAR 2016/2017
 void print_domain(int* domain, int domain_x, int domain_y, int* red, int* blue)
 {
@@ -85,6 +106,7 @@ int main(int argc, char ** argv)
     int cells_per_word = 1;
 
     // Change this to vary the number of game rounds
+    // Pour "init_data_glider_single_player_test_torus" mettre 300 pour bien voir l'effet
     int steps = 2;
 
     int threads_per_block = 128;
@@ -110,6 +132,8 @@ int main(int argc, char ** argv)
     // Arrays of dimensions pitch * domain.y
     //init_data(domain_cpu, domain_x, domain_y);
     init_data_toad(domain_cpu, domain_x, domain_y);
+    //init_data_small_exploder_single_player(domain_cpu, domain_x, domain_y);
+    //init_data_glider_single_player_test_torus(domain_cpu, domain_x, domain_y);
 
     // Count colors
     int red = 0;
