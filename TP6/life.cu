@@ -107,7 +107,7 @@ int main(int argc, char ** argv)
 
     // Change this to vary the number of game rounds
     // Pour "init_data_glider_single_player_test_torus" mettre 300 pour bien voir l'effet
-    int steps = 2;
+    int steps = 1;
 
     int threads_per_block = 128;
     int blocks_x = (domain_x + threads_per_block * cells_per_word - 1) / threads_per_block * cells_per_word;
@@ -156,11 +156,12 @@ int main(int argc, char ** argv)
     CUDA_SAFE_CALL(cudaEventRecord(start, 0));
 
     // Kernel execution
-    int shared_mem_size = 0;
+    int shared_mem_size = (3 * domain_x) * sizeof(int);
 
     for (int i = 0; i < steps; i++)
     {
-        life_kernel<<<grid, threads, shared_mem_size>>>(domain_gpu[i % 2], domain_gpu[(i + 1) % 2], domain_x, domain_y);
+        //life_kernel<<<grid, threads, shared_mem_size>>>(domain_gpu[i % 2], domain_gpu[(i + 1) % 2], domain_x, domain_y);
+        life_kernel_q5<<<grid, threads, shared_mem_size>>>(domain_gpu[i % 2], domain_gpu[(i + 1) % 2], domain_x, domain_y);
     }
 
     // Stop timer
