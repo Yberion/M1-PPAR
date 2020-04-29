@@ -81,15 +81,15 @@ __global__ void life_kernel_q5(int* source_domain, int* dest_domain, int domain_
 
     extern __shared__ int sharedData[];
 
-    int ligneDessous = ((int)blockDim.y - 1 < 0) ? gridDim.y - 1 : blockDim.y - 1;
-    int ligneDessus = (blockDim.y + 1 >= gridDim.y) ? 0 : blockDim.y + 1;
+    int ligneDessous = ((int)blockIdx.y - 1 < 0) ? gridDim.y - 1 : blockIdx.y - 1;
+    int ligneDessus = (blockIdx.y + 1 >= gridDim.y) ? 0 : blockIdx.y + 1;
 
     // Ligne de dessus
-    memcpy(&sharedData[0 * domain_x], &source_domain[blockDim.y], domain_x);
+    memcpy(&sharedData[0 * domain_x], &source_domain[blockIdx.y * domain_x], domain_x);
     // Ligne courante
-    memcpy(&sharedData[1 * domain_x], &source_domain[ligneDessus], domain_x);
+    memcpy(&sharedData[1 * domain_x], &source_domain[ligneDessus * domain_x], domain_x);
     // Ligne de dessous
-    memcpy(&sharedData[2 * domain_x], &source_domain[ligneDessous], domain_x);
+    memcpy(&sharedData[2 * domain_x], &source_domain[ligneDessous * domain_x], domain_x);
 
     // Read cell
     int myself = read_cell(sharedData, tx, ty, 0, 0, domain_x, domain_y);
